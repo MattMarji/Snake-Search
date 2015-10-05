@@ -51,6 +51,7 @@ class crawler(object):
         self._inverted_index = { }
         self._resolved_inverted_index = { }
         self._index_words_by_id = { }
+        self._index_urls_by_id = { }
         self._doc_title_cache = { }
         self._doc_desc_cache = { }
 
@@ -166,6 +167,7 @@ class crawler(object):
 
         doc_id = self._mock_insert_document(url)
         self._doc_id_cache[url] = doc_id
+        self._index_urls_by_id[doc_id] = url
         return doc_id
 
     def _fix_url(self, curr_url, rel):
@@ -226,14 +228,24 @@ class crawler(object):
                 self._inverted_index[word_id] = set([self._curr_doc_id])
 
     def get_inverted_index(self):
-        #return self._inverted_index
-        return self._doc_desc_cache
+        return self._inverted_index
 
     def get_resolved_inverted_index(self):
         # take the inverted index (word_id: set([doc_id, doc_id...]))
         # substitute the word_id with the word (string) and the doc_id with the url (string)
 
-        print "Still needs to be implemented!"
+        for word_id in self._inverted_index:
+
+            # Get the word string
+            word = self._index_words_by_id[word_id]
+            self._resolved_inverted_index[word] = set([])
+
+            # Traverse set and get each word.
+            for doc_id in self._inverted_index[word_id]:
+                url = self._index_urls_by_id[doc_id]
+                self._resolved_inverted_index[word].add(url)
+
+        return self._resolved_inverted_index
 
 
     def _increase_font_factor(self, factor):
@@ -257,7 +269,7 @@ class crawler(object):
                 continue
 
             self._curr_words.append((self.word_id(word), self._font_size))
-            self._index_words_by_id[self.word_id(word)] = word # not sure about this!!
+            self._index_words_by_id[self.word_id(word)] = word
 
     def _text_of(self, elem):
         """Get the text inside some element without any tags."""
