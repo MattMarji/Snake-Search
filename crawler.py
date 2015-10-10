@@ -19,6 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import unittest
 import urllib2
 import urlparse
 from BeautifulSoup import *
@@ -369,6 +370,33 @@ class crawler(object):
                 if socket:
                     socket.close()
 
+class TestCrawlerMethods(unittest.TestCase):
+
+    def setUp(self):
+        self.crawl = crawler(None, 'test_urls.txt')
+        self.crawl.crawl(depth=1)
+        self.inverted_index = self.crawl.get_inverted_index()
+        self.resolved_inverted_index = self.crawl.get_resolved_inverted_index()
+
+    def test_for_incorrect_keywords(self):
+        # Ensure no other words were parsed such as filler words (is,a, etc...)
+        with self.assertRaises(KeyError):
+            self.resolved_inverted_index['is'] != None
+            self.resolved_inverted_index['a'] != None
+
+    def test_for_correct_keywords(self):
+        # Test for expected keywords 'this' and 'test'
+        assert ('this' in self.resolved_inverted_index)
+        assert ('test' in self.resolved_inverted_index)
+
+    def test_for_correct_url(self):
+        # We expect the url to be the one specified in the test_urls.txt file
+        assert (self.resolved_inverted_index['this'] == set(['http://matthewmarji.com/test_page.html']))
+        assert (self.resolved_inverted_index['test'] == set(['http://matthewmarji.com/test_page.html']))
+
+    def test_for_no_repition(self):
+        # Ensure that although we have 2 words, we have 1 URL (no repeat)
+        assert (len(self.crawl._doc_id_cache) == 1)
+
 if __name__ == "__main__":
-    bot = crawler(None, "urls.txt")
-    bot.crawl(depth=1)
+    unittest.main()
