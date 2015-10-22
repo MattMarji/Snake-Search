@@ -16,7 +16,7 @@ Benchmark Setup:
     The test machine is located in Toronto, Ontario
     The unix instance is located in Virginia, USA
 
-    The Unix machine was running dstat, and running the snake search python script on http://0.0.0.0:80 that replied to requests from WRK.
+    The Unix machine was running dstat, and running the snake search python script on http://0.0.0.0:80 that replied to requests from WRK. The script can be run as normal
 
 
 

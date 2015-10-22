@@ -1,7 +1,7 @@
 import boto.ec2
 
 # Establish a connection to us-east-1 instance
-conn = boto.ec2.connect_to_region('us-east-1',aws_access_key_id='AKIAJIXZSP44AQF465YQ', aws_secret_access_key='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')
+conn = boto.ec2.connect_to_region('us-east-1',aws_access_key_id='xxxxxxxxxx', aws_secret_access_key='xxxxxxxxxxxxxx')
 
 # Create a keypair, and save the .pem in the same dir as this file
 keypair = conn.create_key_pair('ec2key')
