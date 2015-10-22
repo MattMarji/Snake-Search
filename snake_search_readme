@@ -1,0 +1,24 @@
+Public IP Address:
+    52.5.243.14
+
+Enabled Google APIs:
+
+
+Benchmark Setup:
+
+    WRK was used to test the EC2 instance.
+    The machine tested from was a Mac OSX 10.10 with WRK installed.
+
+    The following was run at 3 times during the day. (10AM, 1PM, 6PM)
+
+    wrk -t1 -c10 -d30s http://52.5.243.14/?keywords=helloworld+foo+bar
+
+    The test machine is located in Toronto, Ontario
+    The unix instance is located in Virginia, USA
+
+    The Unix machine was running dstat, and running the snake search python script on http://0.0.0.0:80 that replied to requests from WRK.
+
+
+
+
+

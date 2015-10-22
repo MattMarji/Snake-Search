@@ -1,0 +1,107 @@
+SNAKE SEARCH BENCHMARKS
+
+REQUIREMENTS:
+
+MAX # CONNECTIONS
+  Based on testing - running 10 concurrent connections for at least 30 seconds allows for all sockets to stay open and for the GET requests to be successful.
+
+  After 10 connections, we often see socket problems, often timeout errors due to the server being unable to reply fast enough to the request before the timeout period.
+
+MAX # REQUESTS PER SECOND @ MAX # CONNECTIONS
+
+  Using 10 concurrent connections, reviewing the three different tests of requests for 30s - the MAX RPS we see is 190.00 req/sec
+
+LATENCY PER REQUEST
+
+  We will use the same request that yielded the MAX # REQUESTS PER SECOND.
+
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    82.86ms  124.14ms   1.57s    88.54%
+
+DSTAT INFORMATION
+  During max performance, a dstat snippet was taken. It clearly shows all CPU resources being utilized for the duration of the request period (30s) as well as network traffic increasing and disk I/O (as expected) was not changed as not data needed to be persisted or read.
+
+  ----total-cpu-usage---- -dsk/total- -net/total- ---paging-- ---system--
+  usr sys idl wai hiq siq| read  writ| recv  send|  in   out | int   csw
+   12  30  56   0   0   2|   0     0 |  30k   76k|   0     0 |1134   930 START
+   27  70   1   0   0   2|   0     0 |  67k  171k|   0     0 |2591  2059
+   25  71   1   0   0   3|   0     0 |  69k  177k|   0     0 |2613  2081
+   27  72   0   0   0   1|   0     0 |  70k  180k|   0     0 |2689  2091
+   23  73   1   0   0   3|   0     0 |  65k  166k|   0     0 |2506  2034
+   31  65   4   0   0   0|   0     0 |  68k  176k|   0     0 |2636  2068
+   23  74   0   0   0   3|   0     0 |  66k  169k|   0     0 |2569  2053
+   21  78   0   0   0   1|   0     0 |  61k  158k|   0     0 |2438  1976
+   29  69   0   0   0   2|   0     0 |  62k  161k|   0     0 |2519  2016
+   26  73   0   0   0   1|   0     0 |  68k  175k|   0     0 |2614  2072
+   26  67   5   0   0   2|   0     0 |  63k  163k|   0     0 |2408  1993
+   26  71   2   0   0   1|   0     0 |  61k  157k|   0     0 |2436  1968
+   26  72   0   0   0   2|   0     0 |  66k  168k|   0     0 |2533  2045
+   22  71   7   0   0   0|   0     0 |  56k  140k|   0     0 |2082  1712
+   17  83   0   0   0   0|   0     0 |8191B   20k|   0     0 | 157   205
+    6  13  81   0   0   0|   0     0 |5632B   12k|   0     0 | 124   145
+   31  69   0   0   0   0|   0     0 |8964B   19k|   0     0 | 166   217
+   17  83   0   0   0   0|   0     0 |7156B   16k|   0     0 | 146   186
+    8  92   0   0   0   0|   0     0 |7208B   16k|   0     0 | 150   208
+   27  73   0   0   0   0|   0     0 |8115B   17k|   0     0 | 171   217
+   23  69   0   0   0   8|   0     0 |7050B   16k|   0     0 | 148   202
+   25  75   0   0   0   0|   0     0 |7442B   16k|   0     0 | 152   189
+   13  87   0   0   0   0|   0     0 |8208B   17k|   0     0 | 181   222
+   31  62   0   0   0   8|   0     0 |7649B   17k|   0     0 | 158   206
+   33  58   0   0   0   8|   0     0 |7062B   16k|   0     0 | 144   194
+   36  64   0   0   0   0|   0     0 |8751B   19k|   0     0 | 172   213
+   23  77   0   0   0   0|   0     0 |7091B   16k|   0     0 | 151   198
+   23  77   0   0   0   0|   0     0 |6370B   16k|   0     0 | 147   198
+   29  71   0   0   0   0|   0     0 |7209B   15k|   0     0 | 152   205
+   23  77   0   0   0   0|   0     0 |6691B   14k|   0     0 | 139   182
+   38  62   0   0   0   0|   0     0 |5994B   15k|   0     0 | 138   196 END
+    0   2  98   0   0   0|   0     0 | 524B 2648B|   0     0 |  35    49
+    0   0 100   0   0   0|   0     0 |  52B  358B|   0     0 |   9    10
+
+RAW DATA
+based on 3 different requests made using WRK at different times of the day.
+===============================================================================
+  inside-223-192:~ matthewmarji$ wrk -t1 -c10 -d30s http://52.5.243.14/?keywords=helloworld+foo+bar
+
+  Running 30s test @ http://52.5.243.14/?keywords=helloworld+foo+bar
+    1 threads and 10 connections
+    Thread Stats   Avg      Stdev     Max   +/- Stdev
+      Latency    82.86ms  124.14ms   1.57s    88.54%
+      Req/Sec   113.67     63.90   190.00     66.32%
+    3292 requests in 30.11s, 1.97MB read
+
+  Requests/sec:    109.35
+  Transfer/sec:     67.02KB
+
+  ----------------------------------------------------------------------
+
+  inside-223-192:~ matthewmarji$ wrk -t1 -c10 -d30s http://52.5.243.14/?keywords=helloworld+foo+bar
+
+  Running 30s test @ http://52.5.243.14/?keywords=helloworld+foo+bar
+    1 threads and 10 connections
+    Thread Stats   Avg      Stdev     Max   +/- Stdev
+      Latency   116.70ms  176.71ms   1.93s    88.00%
+      Req/Sec    94.13     62.75   171.00     45.80%
+    2713 requests in 30.06s, 1.63MB read
+
+  Requests/sec:     90.26
+  Transfer/sec:     55.44KB
+
+  ----------------------------------------------------------------------
+
+  inside-223-192:~ matthewmarji$ wrk -t1 -c10 -d30s http://52.5.243.14/?keywords=helloworld+foo+bar
+
+  Running 30s test @ http://52.5.243.14/?keywords=helloworld+foo+bar
+    1 threads and 10 connections
+    Thread Stats   Avg      Stdev     Max   +/- Stdev
+      Latency   172.99ms  240.87ms   1.97s    84.68%
+      Req/Sec    72.04     61.72   161.00     42.55%
+    2005 requests in 30.02s, 1.20MB read
+
+  Requests/sec:     66.80
+  Transfer/sec:     41.03KB
+
+  ----------------------------------------------------------------------
+
+
+
+
