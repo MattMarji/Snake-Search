@@ -166,10 +166,8 @@ class crawler(object):
     def insert_into_inverted_index(self):
         """Insert a word_id and it's set of doc_ids into the db store of the inverted index."""
 
-        print self._inverted_index
-
         for word_id, doc_ids in self._inverted_index.iteritems():
-                print 'word_id = ', word_id, '| doc_ids = ', doc_ids
+                #print 'word_id = ', word_id, '| doc_ids = ', doc_ids
 
                 self._db_cursor.execute('INSERT INTO inverted_index(word_id, doc_ids) VALUES (%d, "%s");' % (word_id, ','.join(str(z) for z in doc_ids)))
 
@@ -191,7 +189,7 @@ class crawler(object):
             doc_url_title = self._url_title_cache[url]
 
         # Insert the URL and the matching URL title into the doc_index DB.
-        self._db_cursor.execute('INSERT INTO doc_index(doc_url, doc_url_title) VALUES ("%s", "%s");' % (url, doc_url_title))
+        self._db_cursor.execute('INSERT OR IGNORE INTO doc_index(doc_url, doc_url_title) VALUES ("%s", "%s");' % (url, doc_url_title))
 
         # Retrieve the matching doc_id for the inserted URL.
         self._db_cursor.execute('SELECT doc_id FROM doc_index WHERE doc_url = "%s"' % url)
@@ -257,8 +255,8 @@ class crawler(object):
 
         print "href="+repr(dest_url), \
               "title="+repr(self._text_of(elem).strip()), \
-        #      "alt="+repr(attr(elem,"alt")), \
-        #      "text="+repr(self._text_of(elem))
+              "alt="+repr(attr(elem,"alt")), \
+              "text="+repr(self._text_of(elem).strip())
 
         # add the just found URL to the url queue
         self._url_queue.append((dest_url, self._curr_depth))
@@ -299,7 +297,6 @@ class crawler(object):
                 self._resolved_inverted_index[word].add(url)
 
         return self._resolved_inverted_index
-
 
     def _increase_font_factor(self, factor):
         """Increade/decrease the current font size."""
