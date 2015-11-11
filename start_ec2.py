@@ -16,7 +16,7 @@ sec_group.authorize('tcp', 22, 22, '0.0.0.0/0')
 sec_group.authorize('tcp', 80, 80, '0.0.0.0/0')
 
 # create the instance
-res = conn.run_instances(image_id='ami-8caa1ce4', instance_type='t1.micro', key_name='ec2key')
+res = conn.run_instances(image_id='ami-8caa1ce4', instance_type='t2.micro', key_name='ec2key')
 
 # allocate an elastic ip (static) to the instance
 #addr = conn.allocate_address()

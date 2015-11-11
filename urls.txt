@@ -1,1 +1,2 @@
-http://google.ca
+http://www.eecg.toronto.edu/
+http://matthewmarji.com/test_page.html

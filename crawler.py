@@ -25,6 +25,9 @@ import urlparse
 from BeautifulSoup import *
 from collections import defaultdict
 import re
+import redis
+import sqlite3 as lite
+from pagerank import page_rank
 
 def attr(elem, attr):
     """An html attribute from an html element. E.g. <a href="">, then
@@ -49,12 +52,20 @@ class crawler(object):
         self._url_queue = [ ]
         self._doc_id_cache = { }
         self._word_id_cache = { }
+        self._links_cache = [ ]
+        self._title_cache = [ ]
         self._inverted_index = { }
         self._resolved_inverted_index = { }
         self._index_words_by_id = { }
         self._index_urls_by_id = { }
+        self._url_title_cache = { }
         self._doc_title_cache = { }
         self._doc_desc_cache = { }
+
+        # Initialize DB (SQLite)
+        self._db_conn = db_conn
+        self._db_cursor = db_conn.cursor()
+        self.initialize_databases()
 
         # functions to call when entering and exiting specific tags
         self._enter = defaultdict(lambda *a, **ka: self._visit_ignore)
@@ -127,33 +138,76 @@ class crawler(object):
         except IOError:
             pass
 
-    # TODO remove me in real version
-    def _mock_insert_document(self, url):
-        """A function that pretends to insert a url into a document db table
-        and then returns that newly inserted document's id."""
-        ret_id = self._mock_next_doc_id
-        self._mock_next_doc_id += 1
-        return ret_id
+    def initialize_databases(self):
+        self._db_cursor.execute('CREATE TABLE IF NOT EXISTS lexicon(word_id INTEGER PRIMARY KEY, word TEXT NOT NULL UNIQUE);')
 
-    # TODO remove me in real version
-    def _mock_insert_word(self, word):
-        """A function that pretends to inster a word into the lexicon db table
-        and then returns that newly inserted word's id."""
-        ret_id = self._mock_next_word_id
-        self._mock_next_word_id += 1
-        return ret_id
+        self._db_cursor.execute('CREATE TABLE IF NOT EXISTS inverted_index(word_id INTEGER NOT NULL UNIQUE, doc_ids TEXT NOT NULL);')
+
+        self._db_cursor.execute('CREATE TABLE IF NOT EXISTS page_rank(doc_id INTEGER NOT NULL UNIQUE, doc_rank FLOAT);')
+
+        self._db_cursor.execute('CREATE TABLE IF NOT EXISTS doc_index(doc_id INTEGER PRIMARY KEY, doc_url TEXT UNIQUE, doc_url_title TEXT);')
+
+
+    def insert_word(self, word):
+        """Insert a word into the lexicon. and return the word ID of the inserted word."""
+
+        # Insert word...
+        self._db_cursor.execute('INSERT INTO lexicon(word) VALUES("%s");' % word)
+
+        # Get word_id...
+        self._db_cursor.execute('SELECT word_id FROM lexicon WHERE word = "%s"' % word)
+
+        word_id = self._db_cursor.fetchone()[0]
+        assert(word_id > 0)
+
+        return word_id
+
+
+    def insert_into_inverted_index(self):
+        """Insert a word_id and it's set of doc_ids into the db store of the inverted index."""
+
+        print self._inverted_index
+
+        for word_id, doc_ids in self._inverted_index.iteritems():
+                print 'word_id = ', word_id, '| doc_ids = ', doc_ids
+
+                self._db_cursor.execute('INSERT INTO inverted_index(word_id, doc_ids) VALUES (%d, "%s");' % (word_id, ','.join(str(z) for z in doc_ids)))
+
+    def insert_pagerank(self):
+        """Insert the page ranking of the specific page accessed"""
+
+        if len(self._links_cache) > 0:
+            link_rankings = page_rank(self._links_cache)
+
+            for doc_id, doc_rank in link_rankings.iteritems():
+                self._db_cursor.execute('INSERT INTO page_rank(doc_id, doc_rank) VALUES (%d, %f);' % (doc_id, doc_rank))
+
+    def insert_document(self, url):
+        """Insert url into doc_index DB and return the url doc_id."""
+
+        doc_url_title = ''
+
+        if url in self._url_title_cache:
+            doc_url_title = self._url_title_cache[url]
+
+        # Insert the URL and the matching URL title into the doc_index DB.
+        self._db_cursor.execute('INSERT INTO doc_index(doc_url, doc_url_title) VALUES ("%s", "%s");' % (url, doc_url_title))
+
+        # Retrieve the matching doc_id for the inserted URL.
+        self._db_cursor.execute('SELECT doc_id FROM doc_index WHERE doc_url = "%s"' % url)
+
+        doc_id = self._db_cursor.fetchone()[0]
+        assert(doc_id > 0)
+
+        return doc_id
+
 
     def word_id(self, word):
         """Get the word id of some specific word."""
         if word in self._word_id_cache:
             return self._word_id_cache[word]
 
-        # TODO: 1) add the word to the lexicon, if that fails, then the
-        #          word is in the lexicon
-        #       2) query the lexicon for the id assigned to this word,
-        #          store it in the word id cache, and return the id.
-
-        word_id = self._mock_insert_word(word)
+        word_id = self.insert_word(word)
         self._word_id_cache[word] = word_id
         return word_id
 
@@ -162,11 +216,7 @@ class crawler(object):
         if url in self._doc_id_cache:
             return self._doc_id_cache[url]
 
-        # TODO: just like word id cache, but for documents. if the document
-        #       doesn't exist in the db then only insert the url and leave
-        #       the rest to their defaults.
-
-        doc_id = self._mock_insert_document(url)
+        doc_id = self.insert_document(url)
         self._doc_id_cache[url] = doc_id
         self._index_urls_by_id[doc_id] = url
         return doc_id
@@ -187,7 +237,7 @@ class crawler(object):
     def add_link(self, from_doc_id, to_doc_id):
         """Add a link into the database, or increase the number of links between
         two pages in the database."""
-        # TODO
+        self._links_cache.append((from_doc_id, to_doc_id))
 
     def _visit_title(self, elem):
         """Called when visiting the <title> tag."""
@@ -202,8 +252,11 @@ class crawler(object):
 
         dest_url = self._fix_url(self._curr_url, attr(elem,"href"))
 
-        #print "href="+repr(dest_url), \
-        #      "title="+repr(attr(elem,"title")), \
+        # Save the key-value pair (destination-url -> URL title)
+        self._url_title_cache[dest_url] = self._text_of(elem).strip()
+
+        print "href="+repr(dest_url), \
+              "title="+repr(self._text_of(elem).strip()), \
         #      "alt="+repr(attr(elem,"alt")), \
         #      "text="+repr(self._text_of(elem))
 
@@ -214,7 +267,6 @@ class crawler(object):
         # other document
         self.add_link(self._curr_doc_id, self.document_id(dest_url))
 
-        # TODO add title/alt/text to index for destination url
 
     def _add_words_to_document(self):
         # Go through each word, add it to the inverted index.
@@ -369,6 +421,21 @@ class crawler(object):
             finally:
                 if socket:
                     socket.close()
+
+        # Crawling is complete - start saving to the database!
+
+        # Insert and update the page ranking system.
+        self.insert_pagerank()
+
+        # Insert and update the inverted_index DB.
+        self.insert_into_inverted_index()
+
+        # Save all DB changes!
+        self._db_conn.commit()
+
+        # Close DB connection on completion of crawling.
+        self._db_conn.close()
+
 
 class TestCrawlerMethods(unittest.TestCase):
 
