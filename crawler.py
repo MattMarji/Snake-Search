@@ -47,6 +47,7 @@ class crawler(object):
     ids and document ids."""
 
     def __init__(self, db_conn, url_file):
+
         """Initialize the crawler with a connection to the database to populate
         and with the file containing the list of seed URLs to begin indexing."""
         self._url_queue = [ ]
@@ -62,7 +63,7 @@ class crawler(object):
         self._doc_title_cache = { }
         self._doc_desc_cache = { }
 
-        # Initialize DB (SQLite)
+        # Initialize DB (SQLite)    
         self._db_conn = db_conn
         self._db_cursor = db_conn.cursor()
         self.initialize_databases()
@@ -141,9 +142,9 @@ class crawler(object):
     def initialize_databases(self):
         self._db_cursor.execute('CREATE TABLE IF NOT EXISTS lexicon(word_id INTEGER PRIMARY KEY, word TEXT NOT NULL UNIQUE);')
 
-        self._db_cursor.execute('CREATE TABLE IF NOT EXISTS inverted_index(word_id INTEGER NOT NULL UNIQUE, doc_ids TEXT NOT NULL);')
-
         self._db_cursor.execute('CREATE TABLE IF NOT EXISTS page_rank(doc_id INTEGER NOT NULL UNIQUE, doc_rank FLOAT);')
+
+        self._db_cursor.execute('CREATE TABLE IF NOT EXISTS inverted_index (word_id INTEGER NOT NULL, doc_id INTEGER NOT NULL, PRIMARY KEY (word_id, doc_id));')
 
         self._db_cursor.execute('CREATE TABLE IF NOT EXISTS doc_index(doc_id INTEGER PRIMARY KEY, doc_url TEXT UNIQUE, doc_url_title TEXT);')
 
@@ -152,7 +153,7 @@ class crawler(object):
         """Insert a word into the lexicon. and return the word ID of the inserted word."""
 
         # Insert word...
-        self._db_cursor.execute('INSERT INTO lexicon(word) VALUES("%s");' % word)
+        self._db_cursor.execute('INSERT OR IGNORE INTO lexicon(word) VALUES("%s");' % word)
 
         # Get word_id...
         self._db_cursor.execute('SELECT word_id FROM lexicon WHERE word = "%s"' % word)
@@ -168,8 +169,9 @@ class crawler(object):
 
         for word_id, doc_ids in self._inverted_index.iteritems():
                 #print 'word_id = ', word_id, '| doc_ids = ', doc_ids
+                for doc_id in doc_ids:
+                    self._db_cursor.execute('INSERT OR IGNORE INTO inverted_index(word_id, doc_id) VALUES (%d, %d);' % (word_id, doc_id))
 
-                self._db_cursor.execute('INSERT INTO inverted_index(word_id, doc_ids) VALUES (%d, "%s");' % (word_id, ','.join(str(z) for z in doc_ids)))
 
     def insert_pagerank(self):
         """Insert the page ranking of the specific page accessed"""
@@ -178,7 +180,7 @@ class crawler(object):
             link_rankings = page_rank(self._links_cache)
 
             for doc_id, doc_rank in link_rankings.iteritems():
-                self._db_cursor.execute('INSERT INTO page_rank(doc_id, doc_rank) VALUES (%d, %f);' % (doc_id, doc_rank))
+                self._db_cursor.execute('INSERT OR IGNORE INTO page_rank(doc_id, doc_rank) VALUES (%d, %f);' % (doc_id, doc_rank))
 
     def insert_document(self, url):
         """Insert url into doc_index DB and return the url doc_id."""
@@ -435,7 +437,6 @@ class crawler(object):
 
 
 class TestCrawlerMethods(unittest.TestCase):
-
     def setUp(self):
         self.crawl = crawler(None, 'test_urls.txt')
         self.crawl.crawl(depth=1)

@@ -4,7 +4,10 @@ import sqlite3 as sql
 # import crawler from this directory, not from the installed directory.
 crawler = imp.load_source('crawler', 'crawler.py')
 
-db_conn = sql.connect("snake_search.db")
+try:
+	db_conn = sql.connect('snake_search.db')
+except:
+	print ("error connecting to db")
 
 crawl = crawler.crawler(db_conn, 'urls.txt')
 
