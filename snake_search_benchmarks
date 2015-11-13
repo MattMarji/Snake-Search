@@ -1,5 +1,7 @@
 SNAKE SEARCH BENCHMARKS
 
+##################### LAB 2 BENCHMARKS #########################
+
 REQUIREMENTS:
 
 MAX # CONNECTIONS
@@ -103,5 +105,6 @@ based on 3 different requests made using WRK at different times of the day.
   ----------------------------------------------------------------------
 
 
+##################### LAB 3 BENCHMARKS #########################
 
 

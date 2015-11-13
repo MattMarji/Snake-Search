@@ -19,7 +19,7 @@ These tests will test against a STATIC page that I have uploaded to www.matthewm
 
 To run the tests, simply traverse to the directory and run 'python crawler.py'
 
-LAB 1 IMPLEMENTATION
+LAB 1 + 2 IMPLEMENTATION
 ====================
 
 In Lab 1 we are given a base version of crawler.py. This version does not have a inverted index, nor a resolved inverted index. Also, we currently do NOT save the keywords to a database. All data is cached in memory and is never persisted.
@@ -41,12 +41,29 @@ We have added the following variables:
 	## FOR FUTURE USE: stores the description for a certain doc_id ##
 	self._doc_desc_cache = { }
 
-We have added two new functions:
-
 	## Returns the current inverted index ##
 	def get_inverted_index(self):
 
 	## Returns the resolved inverted index ##
 	def get_resolved_inverted_index(self):
+
+LAB 3 IMPLEMENTATION
+=====================
+
+In Lab 3, we introduce a way of saving data to a SQLite database. Easily said, we have the following tables:
+
+	## LEXICON word_id -> word ##
+	lexicon(word_id INTEGER PRIMARY KEY, word TEXT NOT NULL UNIQUE)
+
+	## PAGE RANK doc_id -> doc_rank ##
+	page_rank(doc_id INTEGER NOT NULL UNIQUE, doc_rank FLOAT)
+
+	## INVERTED_INDEX word_id -> doc_id ##
+	inverted_index (word_id INTEGER NOT NULL, doc_id INTEGER NOT NULL, PRIMARY KEY (word_id, doc_id))
+
+	## DOC_INDEX doc_id -> doc_url ##
+	doc_index(doc_id INTEGER PRIMARY KEY, doc_url TEXT UNIQUE, doc_url_title TEXT)
+
+The frontend will connect to the database which has been prepopulated with the urls that have been crawled in the urls.txt file.
 
 
