@@ -107,4 +107,93 @@ based on 3 different requests made using WRK at different times of the day.
 
 ##################### LAB 3 BENCHMARKS #########################
 
+Although we did not see an increase in the ability to have a greater number of concurrent users, due to what is likely hardware limitations - we did see an increase in throughput and a decrease in latency due to the user of a persistence store!!
+
+As noted below, the average number of transfer/sec is almost 3x greater as it was previously.
+Also, the latency never exceeded 846ms, where the max latency seen previous to lab 3 was almost 2s! This is a dramatic performance boost due to the addition of a database store.
+
+From the dstat output we see that there is disk I/O usage as expected.
+Overall the cpu is not as utilized and strapped as it was when only memory was used to store the values.
+This is a great performance boost in lab 3.
+
+DSTAT
+----total-cpu-usage---- -dsk/total- -net/total- ---paging-- ---system--
+usr sys idl wai hiq siq| read  writ| recv  send|  in   out | int   csw
+  8   2  90   0   0   0|   0     0 |8554B   57k|   0     0 | 402   339
+ 37   5  57   0   0   1|   0     0 |  33k  211k|   0     0 |1237   991
+ 38   5  56   0   0   1|   0     0 |  29k  203k|   0     0 |1329  1087
+ 36   2  62   0   0   0|   0     0 |  32k  200k|   0     0 |1430  1084
+  4   1  95   0   0   0|   0     0 |3599B   26k|   0     0 | 203   171
+  8   1  80  10   0   0|   0  1916k|8562B   48k|   0     0 | 425   302
+ 34   5  60   0   0   1|   0     0 |  31k  210k|   0     0 |1396  1038
+ 37   7  55   0   0   1|   0     0 |  38k  243k|   0     0 |1662  1222
+ 38   6  55   0   0   1|   0     0 |  33k  224k|   0     0 |1421  1001
+ 46   8  46   0   0   1|   0     0 |  42k  280k|   0     0 |1761  1277
+ 42   4  42  12   0   0|   0  2612k|  38k  245k|   0     0 |1690  1296
+ 44   8  47   0   0   0|   0     0 |  40k  271k|   0     0 |1766  1400
+ 40   7  53   0   0   0|   0     0 |  38k  245k|   0     0 |1641  1228
+ 17   5  78   0   0   0|   0     0 |  16k  120k|   0     0 | 766   648
+ 31   2  66   0   0   1|   0     0 |  29k  179k|   0     0 |1242   995
+ 43   6  37  12   0   1|   0  2468k|  38k  253k|   0     0 |1711  1392
+ 45   7  47   0   0   1|   0     0 |  42k  271k|   0     0 |1790  1314
+ 52   7  40   0   0   1|   0     0 |  46k  305k|   0     0 |1973  1479
+ 50   6  42   0   0   2|   0     0 |  43k  287k|   0     0 |1674  1515
+ 43   7  48   0   0   2|   0     0 |  42k  270k|   0     0 |1558  1301
+ 43   5  37  14   0   0|   0  2872k|  39k  252k|   0     0 |1684  1192
+ 40   4  55   0   0   1|   0     0 |  34k  228k|   0     0 |1511  1160
+ 33   6  60   0   0   1|   0     0 |  30k  203k|   0     0 |1328  1098
+ 48   7  44   0   0   2|   0     0 |  40k  265k|   0     0 |1537  1320
+ 45   7  46   0   0   1|   0     0 |  39k  253k|   0     0 |1562  1334
+ 16   3  66  15   0   0|   0  2024k|  19k  102k|   0     0 | 834   587
+ 42   7  44   4   0   2|   0   480k|  37k  265k|   0     0 |1691  1363
+ 51   6  42   0   0   1|   0     0 |  43k  284k|   0     0 |1779  1509
+ 51   9  38   0   0   2|   0     0 |  42k  277k|   0     0 |1590  1477
+ 51   9  39   0   0   1|   0     0 |  45k  295k|   0     0 |1837  1551
+ 37   5  57   0   0   1|   0    28k|  36k  231k|   0     0 |1599  1219
+  0   0  83  17   0   0|   0  2900k| 104B  460B|   0     0 | 111    95
+  0   1  99   0   0   0|   0     0 | 104B  460B|   0     0 |  53    95
+
+
+Matthews-MacBook-Pro:~ matthewmarji$ wrk -t1 -c10 -d30s http://52.5.243.14/?keywords=helloworld+foo+bar
+
+Running 30s test @ http://52.5.243.14/?keywords=helloworld+foo+bar
+  1 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    88.81ms   78.37ms 846.72ms   91.59%
+    Req/Sec    71.72     25.88   101.00     71.02%
+  2077 requests in 30.03s, 5.80MB read
+
+Requests/sec:     69.16
+Transfer/sec:    197.62KB
+
+  ----------------------------------------------------------------------
+
+Matthews-MacBook-Pro:~ matthewmarji$ wrk -t1 -c10 -d30s http://52.5.243.14/?keywords=helloworld+foo+bar
+
+Running 30s test @ http://52.5.243.14/?keywords=helloworld+foo+bar
+
+  1 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   105.84ms  115.54ms   1.20s    93.95%
+    Req/Sec    61.52     24.93   101.00     60.58%
+  1740 requests in 30.05s, 4.86MB read
+
+Requests/sec:     57.90
+Transfer/sec:    165.44KB
+
+  ----------------------------------------------------------------------
+
+Matthews-MacBook-Pro:~ matthewmarji$ wrk -t1 -c10 -d30s http://52.5.243.14/?keywords=helloworld+foo+bar
+
+Running 30s test @ http://52.5.243.14/?keywords=helloworld+foo+bar
+
+  1 threads and 10 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency   103.64ms  121.22ms   1.29s    93.37%
+    Req/Sec    69.92     22.60   101.00     76.05%
+  1906 requests in 30.10s, 5.32MB read
+
+Requests/sec:     63.33
+Transfer/sec:    180.96KB
+
 
