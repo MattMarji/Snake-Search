@@ -64,6 +64,14 @@ In Lab 3, we introduce a way of saving data to a SQLite database. Easily said, w
 	## DOC_INDEX doc_id -> doc_url ##
 	doc_index(doc_id INTEGER PRIMARY KEY, doc_url TEXT UNIQUE, doc_url_title TEXT)
 
+LAB 4 IMPLEMENTATION
+====================
+
+In Lab 4, we introduce optimizations to our AWS setup. Please refer to our writeup as to how we have optimized our infastructure.
+
+The system architecture is displayed below.
+
+
 The frontend will connect to the database which has been prepopulated with the urls that have been crawled in the urls.txt file.
 
 
