@@ -32,7 +32,7 @@ def deploy():
     print "Deploying: Starting Snake Search ..."
 
     # SSH, install pip with root access, install dependencies with root access, run Snake Search!!e
-    os.system('ssh -i StrictHostKeyChecking=no -i %s ubuntu@%s sudo apt-get -y update && sudo apt-get -y install python-pip && sudo pip install beaker && sudo pip install boto && sudo pip install oauth2client && sudo pip install BeautifulSoup && sudo pip install google-api-python-client && sudo nohup python snake_search.py' % key_pair, ip_addr)
+    os.system('ssh -i StrictHostKeyChecking=no -i %s ubuntu@%s sudo apt-get -y update && sudo apt-get -y install python-pip && sudo apt-get -y install python-dev && sudo pip install beaker && sudo pip install boto && sudo pip install oauth2client && sudo pip install BeautifulSoup && sudo pip install google-api-python-client && sudo install gevent && sudo pip install httplib2 && sudo pip install bottle_sqlite && sudo nohup python snake_search.py' % key_pair, ip_addr)
 
     print "Deploying: SUCCESSFULLY COMPLETED"
     print "Public IP: ", ip_addr

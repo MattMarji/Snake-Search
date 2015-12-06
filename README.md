@@ -3,8 +3,22 @@
 Description
 ===========
 
-This is the official implementation of the Snake Search back-end.
+This is the official implementation of Snake Search.
+
 Snake Search is a search engine that will use two Python libraries (Crawler and BeautifulSoup) to traverse a list of known url's for words that match the query sent by a user.
+
+The stored values will go into multiple SQLite DBs.
+The front-end portion of Snake Search uses the bottle framework, but implements Gevent for Asynchronous ability to server a great number of concurrent requests. The front-end connects to the SQLite DB, and queries the tables for the necessary information.
+
+The HTML was built using the Bootstrap framework.
+
+A Load balancer stands in front of two instances of Snake Search to improve concurrency and performance.
+
+DEPLOY SNAKE SEARCH
+====================
+A deploy script has been created to setup *a single instance* of snake search. The load balancer setup is not automated.
+
+Simply run the deploy.py script. That's it!
 
 RUN CRAWLER.PY
 ====================
@@ -69,9 +83,45 @@ LAB 4 IMPLEMENTATION
 
 In Lab 4, we introduce optimizations to our AWS setup. Please refer to our writeup as to how we have optimized our infastructure.
 
-The system architecture is displayed below.
+A Load Balancer now sits in front of two instances.
 
+The load balancer can be accessed here: snake-search-lb-1706060925.us-east-1.elb.amazonaws.com
 
 The frontend will connect to the database which has been prepopulated with the urls that have been crawled in the urls.txt file.
+
+BENCHMARKING
+====================
+
+Public IP Address:
+    52.5.243.14 - Snake Search Instance 1 (ec2-52-5-243-14.compute-1.amazonaws.com)
+    52.91.171.44 - Snake Search Instance 2 (ec2-52-91-171-44.compute-1.amazonaws.com)
+    snake-search-lb-1706060925.us-east-1.elb.amazonaws.com - Load Balancer
+
+Enabled Google APIs:
+
+
+Benchmark Setup:
+
+    WRK and ApacheBench was used to test the EC2 instance.
+    The machine tested from was a Mac OSX 10.10 with WRK installed.
+    The second machine used was a Windows 8 PC with ApacheBench installed via XAMPP.
+
+    The following was run at 3 times during the day. (10AM, 1PM, 6PM)
+
+    wrk -t1 -c3000 -d30s http://52.5.243.14/?keywords=engineering
+
+    The test machine is located in Toronto, Ontario
+    The unix instance is located in Virginia, USA
+
+    The Unix machine was running dstat, and running the snake search python script on http://0.0.0.0:80 that replied to requests from WRK. The script can be run as normal
+
+Testing Concurrency:
+
+   We tested concurrency by running ApacheBench on a Windows machine. The following line was run, until we found
+   a concurrency value that caused connections to fail.
+
+   ab.exe -n 8000 -c 8000 http://snake-search-lb-1706060925.us-east-1.elb.amazonaws.com/?keywords=engineering
+
+   We continued to increase this value until we reached max concurrency at 8000 connections!
 
 

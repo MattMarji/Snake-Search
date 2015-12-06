@@ -1,8 +1,8 @@
 import boto.ec2
 
 
-AWS_ACCESS_KEY_ID = 'xxxxxxxxxx'
-AWS_SECRET_ACCESS_KEY = 'xxxxxxxxxxxxxx'
+AWS_ACCESS_KEY_ID = 'AKIAJIXZSP44AQF465YQ'
+AWS_SECRET_ACCESS_KEY = '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'
 EC2_REGION = 'us-east-1'
 KEYPAIR_NAME = 'ec2key'
 KEYPAIR_SAVE_LOCATION = '.'
@@ -38,3 +38,5 @@ def deploy_ec2():
 
     # ... We are now ready to go. Return any necessary data.
     return addr, res.instances[0], KEYPAIR_SAVE_LOCATION+KEYPAIR_NAME+'.pem'
+
+print deploy_ec2()
