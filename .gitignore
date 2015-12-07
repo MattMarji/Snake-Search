@@ -2,5 +2,7 @@
 credentials.csv
 
 ec2key.pem
+ec2key2.pem
+client_secrets.json
 
 matthew-macbook.pem
