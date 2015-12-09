@@ -33,12 +33,10 @@ These tests will test against a STATIC page that I have uploaded to www.matthewm
 
 To run the tests, simply traverse to the directory and run 'python crawler.py'
 
-LAB 1 + 2 IMPLEMENTATION
+PART 1 + 2 IMPLEMENTATION
 ====================
 
-In Lab 1 we are given a base version of crawler.py. This version does not have a inverted index, nor a resolved inverted index. Also, we currently do NOT save the keywords to a database. All data is cached in memory and is never persisted.
-
-We have added the following variables:
+I have added the following variables:
 
 	self._inverted_index = { }
 	self._resolved_inverted_index = { }
@@ -61,10 +59,10 @@ We have added the following variables:
 	## Returns the resolved inverted index ##
 	def get_resolved_inverted_index(self):
 
-LAB 3 IMPLEMENTATION
+PART 3 IMPLEMENTATION
 =====================
 
-In Lab 3, we introduce a way of saving data to a SQLite database. Easily said, we have the following tables:
+I introduce a way of saving data to a SQLite database. Easily said, we have the following tables:
 
 	## LEXICON word_id -> word ##
 	lexicon(word_id INTEGER PRIMARY KEY, word TEXT NOT NULL UNIQUE)
@@ -78,10 +76,10 @@ In Lab 3, we introduce a way of saving data to a SQLite database. Easily said, w
 	## DOC_INDEX doc_id -> doc_url ##
 	doc_index(doc_id INTEGER PRIMARY KEY, doc_url TEXT UNIQUE, doc_url_title TEXT)
 
-LAB 4 IMPLEMENTATION
+PART 4 IMPLEMENTATION
 ====================
 
-In Lab 4, we introduce optimizations to our AWS setup. Please refer to our writeup as to how we have optimized our infastructure.
+In part 4, we introduce optimizations to our AWS setup. Please refer to our writeup as to how we have optimized our infastructure.
 
 A Load Balancer now sits in front of two instances.
 
@@ -122,6 +120,8 @@ Testing Concurrency:
 
    ab.exe -n 8000 -c 8000 http://snake-search-lb-1706060925.us-east-1.elb.amazonaws.com/?keywords=engineering
 
-   We continued to increase this value until we reached max concurrency at 8000 connections!
+   We continued to increase this value until we reached max concurrency at ~10 000 connections!
+   
+   Note: we are using Amazon t1.micro instances...pretty impressive, I know. :)
 
 
